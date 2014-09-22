@@ -98,7 +98,7 @@ public class Search extends Activity implements View.OnClickListener, AdapterVie
         }
 
         // Create an Intent to share your content
-        setShareIntent();
+        setShareIntent("", "");
 
         return true;
     }
@@ -133,21 +133,44 @@ public class Search extends Activity implements View.OnClickListener, AdapterVie
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        JSONObject book = (JSONObject) mJSONAdapter.getItem(i);
+        String bookTitle = "";
+        String authorName = "";
 
-        Log.d("Logging name: ", i + ": " + mNameList.get(i));
-        javaLabelObject.setText((CharSequence) mNameList.get(i).toString() + " item was clicked");
-        setShareIntent();
+        if (book.has("title")) {
+            bookTitle = book.optString("title");
+        }
+
+        if (book.has("author_name")) {
+            authorName = book.optJSONArray("author_name").optString(0);
+        }
+
+        setShareIntent(bookTitle, authorName);
     }
 
-    private void setShareIntent() {
+    private void setShareIntent(String title, String author) {
+
 
         if (mShareActionProvider != null) {
 
             // create an Intent with the contents of the TextView
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Android Development");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, javaLabelObject.getText());
+            if (title.isEmpty()) {
+                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Not reading anything");
+            } else {
+                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Reading " + title);
+            }
+
+            if (author.isEmpty()) {
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "Please start reading something!");
+            } else {
+                if (title.isEmpty()) {
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, "A book which has no name by " + author);
+                } else {
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, title + " by " + author);
+                }
+            }
 
             // Make sure the provider knows
             // it should work with that Intent
